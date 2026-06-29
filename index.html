@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Electro Crespo — Instalaciones & Automatización</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── TOKENS ─────────────────────────────────────────── */
+    :root {
+      --black:   #0a0a0a;
+      --gray:    #111111;
+      --mid:     #1c1c1c;
+      --border:  #2a2a2a;
+      --muted:   #888888;
+      --white:   #f5f5f5;
+      --yellow:  #f5c400;
+      --yellow2: #e0b000;
+      --font-display: 'Barlow Condensed', sans-serif;
+      --font-body:    'Barlow', sans-serif;
+      --max: 1100px;
+      --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── CUSTOM CURSOR ──────────────────────────────────── */
+    .cursor-dot {
+      position: fixed;
+      width: 8px; height: 8px;
+      background: var(--yellow);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s, width 0.2s, height 0.2s, background 0.2s;
+    }
+    .cursor-ring {
+      position: fixed;
+      width: 36px; height: 36px;
+      border: 1.5px solid rgba(245,196,0,0.5);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: transform 0.12s var(--ease), width 0.25s var(--ease), height 0.25s var(--ease), border-color 0.25s;
+    }
+    body.cursor-hover .cursor-dot {
+      width: 12px; height: 12px;
+      background: var(--yellow);
+    }
+    body.cursor-hover .cursor-ring {
+      width: 56px; height: 56px;
+      border-color: var(--yellow);
+    }
+    @media (pointer: coarse) {
+      .cursor-dot, .cursor-ring { display: none; }
+      body { cursor: auto; }
+    }
+
+    /* ── UTILITY ────────────────────────────────────────── */
+    .container {
+      width: 100%;
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .tag {
+      display: inline-block;
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      margin-bottom: 16px;
+    }
+
+    /* ── SCROLL REVEAL ──────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.65s var(--ease), transform 0.65s var(--ease);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* ── NAV ────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 20px 0;
+      transition: background 0.4s, padding 0.4s;
+    }
+    nav.scrolled {
+      background: rgba(10,10,10,0.95);
+      backdrop-filter: blur(8px);
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* ── LOGO: rayo izquierda + texto apilado ── */
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-logo svg {
+      width: 24px;
+      height: auto;
+      flex-shrink: 0;
+    }
+    .nav-logo-text {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 16px;
+      line-height: 1;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--white);
+      display: flex;
+      flex-direction: column;
+    }
+    .nav-logo-text span {
+      display: block;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--yellow); }
+
+    .nav-cta {
+      background: var(--yellow);
+      color: var(--black);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 10px 22px;
+      border: none;
+      cursor: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .nav-cta:hover { background: var(--yellow2); transform: translateY(-1px); }
+
+    /* hamburger */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .hamburger span {
+      display: block;
+      width: 24px; height: 2px;
+      background: var(--white);
+      transition: all 0.3s;
+    }
+
+    /* mobile menu */
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--black);
+      z-index: 99;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a {
+      font-family: var(--font-display);
+      font-size: 36px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--white);
+      transition: color 0.2s;
+    }
+    .mobile-menu a:hover { color: var(--yellow); }
+    .mobile-close {
+      position: absolute;
+      top: 24px; right: 24px;
+      background: none;
+      border: none;
+      color: var(--white);
+      font-size: 32px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    /* ── HERO ───────────────────────────────────────────── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      padding: 120px 0 80px;
+    }
+    #hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.3;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%);
+    }
+    #hero::after {
+      content: '';
+      position: absolute;
+      top: -200px; left: -200px;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(245,196,0,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr;
+      max-width: 720px;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      display: block;
+      width: 32px; height: 2px;
+      background: var(--yellow);
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: clamp(52px, 7vw, 88px);
+      line-height: 0.92;
+      letter-spacing: -0.01em;
+      text-transform: uppercase;
+      color: var(--white);
+      margin-bottom: 28px;
+    }
+    .hero-title em {
+      font-style: normal;
+      color: var(--yellow);
+    }
+
+    .hero-sub {
+      font-size: 17px;
+      font-weight: 400;
+      color: var(--muted);
+      max-width: 520px;
+      line-height: 1.7;
+      margin-bottom: 40px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: var(--yellow);
+      color: var(--black);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 16px 32px;
+      border: none;
+      cursor: none;
+      transition: background 0.2s, transform 0.15s;
+      display: inline-block;
+    }
+    .btn-primary:hover { background: var(--yellow2); transform: translateY(-2px); }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--white);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 15px 32px;
+      border: 1px solid var(--border);
+      cursor: none;
+      transition: border-color 0.2s, color 0.2s, transform 0.15s;
+      display: inline-block;
+    }
+    .btn-outline:hover { border-color: var(--yellow); color: var(--yellow); transform: translateY(-2px); }
+
+    .hero-stats {
+      display: flex;
+      gap: 40px;
+      margin-top: 56px;
+      padding-top: 40px;
+      border-top: 1px solid var(--border);
+    }
+    .stat-num {
+      font-family: var(--font-display);
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--yellow);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── SOBRE MÍ ───────────────────────────────────────── */
+    #sobre {
+      padding: 120px 0;
+      background: var(--gray);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sobre-inner {
+      display: grid;
+      grid-template-columns: 1fr;
+      max-width: 700px;
+    }
+
+    .sobre-label {
+      font-family: var(--font-display);
+      font-size: 120px;
+      font-weight: 900;
+      color: transparent;
+      -webkit-text-stroke: 1px var(--border);
+      line-height: 1;
+      margin-bottom: -20px;
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
+      user-select: none;
+    }
+
+    .sobre-title {
+      font-family: var(--font-display);
+      font-size: clamp(32px, 4vw, 52px);
+      font-weight: 900;
+      text-transform: uppercase;
+      line-height: 1;
+      margin-bottom: 24px;
+      color: var(--white);
+    }
+    /* ALL white — no yellow span override */
+    .sobre-title span { color: var(--white); }
+
+    .sobre-text {
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    .sobre-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 32px;
+    }
+    .badge {
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .badge:hover { border-color: var(--yellow); color: var(--yellow); }
+
+    /* ── SERVICIOS ──────────────────────────────────────── */
+    #servicios { padding: 120px 0; }
+
+    .section-header { margin-bottom: 64px; }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 5vw, 64px);
+      font-weight: 900;
+      text-transform: uppercase;
+      line-height: 1;
+      color: var(--white);
+    }
+    /* ALL white — span override */
+    .section-title span { color: var(--white); }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .service-card {
+      background: var(--black);
+      padding: 48px 36px;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s;
+      cursor: none;
+    }
+    .service-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 0; height: 3px;
+      background: var(--yellow);
+      transition: width 0.4s var(--ease);
+    }
+    .service-card:hover { background: var(--gray); }
+    .service-card:hover::after { width: 100%; }
+
+    .service-icon {
+      width: 52px; height: 52px;
+      margin-bottom: 28px;
+      color: var(--yellow);
+      transition: transform 0.3s var(--ease);
+    }
+    .service-card:hover .service-icon { transform: scale(1.12) translateY(-3px); }
+
+    .service-num {
+      position: absolute;
+      top: 24px; right: 28px;
+      font-family: var(--font-display);
+      font-size: 64px;
+      font-weight: 900;
+      color: var(--border);
+      line-height: 1;
+      user-select: none;
+      transition: color 0.3s;
+    }
+    .service-card:hover .service-num { color: rgba(245,196,0,0.08); }
+
+    .service-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--white);
+      margin-bottom: 14px;
+    }
+
+    .service-desc {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    /* ── TESTIMONIOS ────────────────────────────────────── */
+    #testimonios {
+      padding: 120px 0;
+      background: var(--gray);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .testimonios-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 56px;
+    }
+
+    .testimonial-card {
+      background: var(--mid);
+      border: 1px solid var(--border);
+      padding: 36px 30px;
+      position: relative;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .testimonial-card:hover {
+      border-color: var(--yellow);
+      transform: translateY(-4px);
+    }
+
+    .quote-mark {
+      font-family: var(--font-display);
+      font-size: 72px;
+      font-weight: 900;
+      color: var(--yellow);
+      line-height: 0.6;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .testimonial-text {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 28px;
+      font-style: italic;
+    }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .author-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--yellow);
+      flex-shrink: 0;
+    }
+    .author-name {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--white);
+    }
+    .author-loc {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ── CONTACTO ───────────────────────────────────────── */
+    #contacto { padding: 120px 0; }
+
+    .contacto-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: start;
+    }
+
+    .contacto-info .section-title { margin-bottom: 24px; }
+
+    .contacto-desc {
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.8;
+      margin-bottom: 48px;
+    }
+
+    .contact-items {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .contact-icon {
+      width: 44px; height: 44px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--yellow);
+      flex-shrink: 0;
+    }
+    .contact-icon svg { width: 20px; }
+    .contact-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 2px;
+    }
+    .contact-value {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--white);
+    }
+    .contact-value a:hover { color: var(--yellow); }
+
+    .contacto-form {
+      background: var(--gray);
+      border: 1px solid var(--border);
+      padding: 48px 40px;
+    }
+
+    .form-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--white);
+      margin-bottom: 32px;
+    }
+
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      background: var(--mid);
+      border: 1px solid var(--border);
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 15px;
+      padding: 14px 16px;
+      outline: none;
+      transition: border-color 0.2s;
+      appearance: none;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus { border-color: var(--yellow); }
+    .form-group textarea { resize: vertical; min-height: 120px; }
+
+    .form-submit {
+      width: 100%;
+      background: var(--yellow);
+      color: var(--black);
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 18px;
+      border: none;
+      cursor: none;
+      transition: background 0.2s, transform 0.15s;
+      margin-top: 8px;
+    }
+    .form-submit:hover { background: var(--yellow2); transform: translateY(-1px); }
+
+    .form-success {
+      display: none;
+      text-align: center;
+      padding: 24px;
+      background: rgba(245,196,0,0.08);
+      border: 1px solid var(--yellow);
+      margin-top: 16px;
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--yellow);
+    }
+
+    /* ── WHATSAPP FLOTANTE ──────────────────────────────── */
+    .wa-float {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      overflow: hidden;
+      border-radius: 0;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+      cursor: none;
+    }
+
+    .wa-float-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      background: #25D366;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .wa-float-btn svg {
+      width: 26px;
+      color: #fff;
+    }
+    .wa-float-btn:hover { background: #1ebe5d; }
+
+    .wa-float-label {
+      background: var(--mid);
+      border: 1px solid var(--border);
+      border-left: none;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--white);
+      white-space: nowrap;
+      max-width: 0;
+      padding: 0;
+      overflow: hidden;
+      transition: max-width 0.4s var(--ease), padding 0.4s var(--ease);
+    }
+    .wa-float:hover .wa-float-label {
+      max-width: 200px;
+      padding: 0 18px;
+    }
+
+    /* pulse ring on WA button */
+    .wa-float-btn::after {
+      content: '';
+      position: absolute;
+      width: 56px; height: 56px;
+      border-radius: 0;
+      background: rgba(37,211,102,0.25);
+      animation: waPulse 2.4s ease-out infinite;
+    }
+    .wa-float { position: fixed; } /* re-assert for stacking context */
+
+    @keyframes waPulse {
+      0% { transform: scale(1); opacity: 0.7; }
+      100% { transform: scale(1.7); opacity: 0; }
+    }
+
+    /* ── FOOTER ─────────────────────────────────────────── */
+    footer {
+      background: var(--gray);
+      border-top: 1px solid var(--border);
+      padding: 56px 0 32px;
+    }
+
+    .footer-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding-bottom: 40px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 32px;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .footer-logo-text {
+      font-family: var(--font-display);
+      font-weight: 900;
+      font-size: 18px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      display: flex;
+      flex-direction: column;
+      line-height: 1;
+    }
+    .footer-tagline {
+      font-size: 13px;
+      color: var(--muted);
+      max-width: 260px;
+    }
+
+    .footer-links { display: flex; gap: 60px; flex-wrap: wrap; }
+    .footer-col-title {
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .footer-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .footer-col ul a {
+      font-size: 14px;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+    .footer-col ul a:hover { color: var(--yellow); }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .footer-copy { font-size: 13px; color: var(--muted); }
+    .footer-copy span { color: var(--yellow); }
+
+    .social-links { display: flex; gap: 16px; }
+    .social-link {
+      width: 36px; height: 36px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .social-link:hover { border-color: var(--yellow); color: var(--yellow); }
+    .social-link svg { width: 16px; }
+
+    /* ── RESPONSIVE ─────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .contacto-inner { grid-template-columns: 1fr; gap: 48px; }
+      .services-grid { grid-template-columns: 1fr; }
+      .testimonios-grid { grid-template-columns: 1fr; }
+      .sobre-label { font-size: 72px; }
+      .nav-links, .nav-cta { display: none; }
+      .hamburger { display: flex; }
+      .footer-links { gap: 32px; }
+    }
+
+    @media (max-width: 600px) {
+      .hero-stats { gap: 24px; flex-wrap: wrap; }
+      .contacto-form { padding: 32px 24px; }
+      .sobre-label { font-size: 52px; }
+      .wa-float { bottom: 20px; right: 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; }
+      .wa-float-btn::after { animation: none; }
+    }
+
+    /* ── SECTION DIVIDER LINE ANIMATION ─────────────────── */
+    .section-line {
+      display: block;
+      width: 0;
+      height: 2px;
+      background: var(--yellow);
+      margin-bottom: 32px;
+      transition: width 0.9s var(--ease);
+    }
+    .section-line.visible { width: 60px; }
+  </style>
+</head>
+<body>
+
+  <!-- Custom cursor -->
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- ── NAV ── -->
+  <nav id="navbar">
+    <div class="container">
+      <a href="#hero" class="nav-logo">
+        <svg viewBox="0 0 24 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 0L0 22H10L8 38L24 14H14L14 0Z" fill="#f5c400"/>
+        </svg>
+        <span class="nav-logo-text">
+          <span>ELECTRO</span>
+          <span>CRESPO</span>
+        </span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#sobre">Sobre mí</a></li>
+        <li><a href="#servicios">Servicios</a></li>
+        <li><a href="#testimonios">Testimonios</a></li>
+        <li><a href="#contacto">Contacto</a></li>
+      </ul>
+      <a href="#contacto" class="nav-cta">Consultar</a>
+      <button class="hamburger" id="hamburger" aria-label="Abrir menú">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- mobile menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <button class="mobile-close" id="mobileClose" aria-label="Cerrar">×</button>
+    <a href="#sobre" class="mobile-link">Sobre mí</a>
+    <a href="#servicios" class="mobile-link">Servicios</a>
+    <a href="#testimonios" class="mobile-link">Testimonios</a>
+    <a href="#contacto" class="mobile-link">Contacto</a>
+  </div>
+
+  <!-- ── HERO ── -->
+  <section id="hero">
+    <div class="container">
+      <div class="hero-inner">
+        <div class="hero-eyebrow reveal">Crespo, Entre Ríos</div>
+        <h1 class="hero-title reveal">
+          Energía<br>que <em>funciona.</em><br>Siempre.
+        </h1>
+        <p class="hero-sub reveal">
+          Instalaciones eléctricas, automatización del hogar y reparaciones con los más altos estándares técnicos. Trabajo con precisión, materiales de primera y respaldo profesional.
+        </p>
+        <div class="hero-actions reveal">
+          <a href="#contacto" class="btn-primary">Solicitar presupuesto</a>
+          <a href="#servicios" class="btn-outline">Ver servicios</a>
+        </div>
+        <div class="hero-stats reveal">
+          <div class="stat-item">
+            <div class="stat-num">+10</div>
+            <div class="stat-label">Años de experiencia</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num">+200</div>
+            <div class="stat-label">Proyectos realizados</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num">100%</div>
+            <div class="stat-label">Garantía en trabajo</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SOBRE MÍ ── -->
+  <section id="sobre">
+    <div class="container">
+      <div class="sobre-inner">
+        <div class="sobre-left reveal">
+          <div class="sobre-label">CM</div>
+          <div class="tag">Sobre mí</div>
+          <span class="section-line reveal"></span>
+          <h2 class="sobre-title">Claudio<br><span>Müller</span></h2>
+          <p class="sobre-text">
+            Soy electricista con más de una década de experiencia en instalaciones residenciales, automatización del hogar y reparaciones eléctricas en Crespo y la región.
+          </p>
+          <p class="sobre-text">
+            Trabajo con criterio técnico, materiales certificados y el compromiso de que cada instalación sea segura, eficiente y duradera. Cada proyecto es tratado con la misma dedicación, sea grande o pequeño.
+          </p>
+          <div class="sobre-badges">
+            <span class="badge">Instalaciones domiciliarias</span>
+            <span class="badge">Domótica</span>
+            <span class="badge">Reparaciones</span>
+            <span class="badge">Crespo · E.R.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SERVICIOS ── -->
+  <section id="servicios">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="tag">Qué hago</div>
+        <span class="section-line reveal"></span>
+        <h2 class="section-title">Servicios<br><span>especializados</span></h2>
+      </div>
+      <div class="services-grid">
+
+        <div class="service-card reveal">
+          <span class="service-num">01</span>
+          <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          <h3 class="service-title">Instalaciones eléctricas domiciliarias</h3>
+          <p class="service-desc">
+            Diseño y ejecución de instalaciones nuevas o reformas completas. Tableros seccionales, circuitos TUG/IUG, iluminación y puesta a tierra bajo normativa AEA vigente.
+          </p>
+        </div>
+
+        <div class="service-card reveal">
+          <span class="service-num">02</span>
+          <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          <h3 class="service-title">Automatización del hogar</h3>
+          <p class="service-desc">
+            Integración de sistemas inteligentes: control de luces, persianas, climatización y seguridad. Hogares más cómodos, seguros y eficientes en consumo energético.
+          </p>
+        </div>
+
+        <div class="service-card reveal">
+          <span class="service-num">03</span>
+          <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>
+          </svg>
+          <h3 class="service-title">Reparaciones eléctricas</h3>
+          <p class="service-desc">
+            Diagnóstico y solución de fallas: cortocircuitos, disyuntores que saltan, tomacorrientes sin tensión, artefactos con problemas. Atención rápida y resolución definitiva.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TESTIMONIOS ── -->
+  <section id="testimonios">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="tag">Lo que dicen</div>
+        <span class="section-line reveal"></span>
+        <h2 class="section-title">Clientes que<br><span>confían</span></h2>
+      </div>
+      <div class="testimonios-grid">
+
+        <div class="testimonial-card reveal">
+          <span class="quote-mark">"</span>
+          <p class="testimonial-text">Hicimos la instalación completa de nuestra casa nueva con Claudio. Prolijo, puntual y siempre explicando lo que hacía. Sin dudas lo volvemos a llamar.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">MR</div>
+            <div>
+              <div class="author-name">Marcelo Rodríguez</div>
+              <div class="author-loc">Crespo, Entre Ríos</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card reveal">
+          <span class="quote-mark">"</span>
+          <p class="testimonial-text">Me instaló el sistema de automatización de luces y persianas. La atención fue excelente, todo quedó funcionando perfecto. Muy recomendable.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">LV</div>
+            <div>
+              <div class="author-name">Laura Villanueva</div>
+              <div class="author-loc">Paraná, Entre Ríos</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card reveal">
+          <span class="quote-mark">"</span>
+          <p class="testimonial-text">Teníamos un problema con el tablero que nadie nos lo resolvía. Claudio vino, diagnosticó rápido y lo solucionó en el día. Trabajo impecable.</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">JP</div>
+            <div>
+              <div class="author-name">Jorge Peralta</div>
+              <div class="author-loc">Crespo, Entre Ríos</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CONTACTO ── -->
+  <section id="contacto">
+    <div class="container">
+      <div class="contacto-inner">
+
+        <div class="contacto-info reveal">
+          <div class="tag">Contacto</div>
+          <span class="section-line reveal"></span>
+          <h2 class="section-title">Hablemos de<br><span>tu proyecto</span></h2>
+          <p class="contacto-desc">
+            Pedí tu presupuesto sin compromiso. Respondemos rápido y coordinamos una visita para evaluar tu instalación o proyecto.
+          </p>
+          <div class="contact-items">
+            <div class="contact-item">
+              <div class="contact-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.1 1.18 2 2 0 012.08 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.18 6.18l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>
+                </svg>
+              </div>
+              <div class="contact-text">
+                <div class="contact-label">Teléfono / WhatsApp</div>
+                <div class="contact-value"><a href="tel:+543434638450">343 463-8450</a></div>
+              </div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                </svg>
+              </div>
+              <div class="contact-text">
+                <div class="contact-label">Instagram</div>
+                <div class="contact-value"><a href="https://instagram.com/electro.crespo" target="_blank">@electro.crespo</a></div>
+              </div>
+            </div>
+            <div class="contact-item">
+              <div class="contact-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+                </svg>
+              </div>
+              <div class="contact-text">
+                <div class="contact-label">Ubicación</div>
+                <div class="contact-value">Crespo, Entre Ríos</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="contacto-form reveal">
+          <div class="form-title">Solicitar presupuesto</div>
+          <form id="contactForm">
+            <div class="form-group">
+              <label for="nombre">Nombre completo</label>
+              <input type="text" id="nombre" placeholder="Juan García" required>
+            </div>
+            <div class="form-group">
+              <label for="tel">Teléfono</label>
+              <input type="tel" id="tel" placeholder="343 000-0000">
+            </div>
+            <div class="form-group">
+              <label for="servicio">Servicio</label>
+              <select id="servicio">
+                <option value="">Seleccioná un servicio</option>
+                <option>Instalación eléctrica domiciliaria</option>
+                <option>Automatización del hogar</option>
+                <option>Reparación eléctrica</option>
+                <option>Otro</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="mensaje">Describí tu consulta</label>
+              <textarea id="mensaje" placeholder="Contame brevemente qué necesitás..."></textarea>
+            </div>
+            <button type="submit" class="form-submit">Enviar consulta →</button>
+            <div class="form-success" id="formSuccess">✓ Consulta enviada. Te contactamos a la brevedad.</div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer>
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <svg width="20" viewBox="0 0 24 38" fill="none">
+              <path d="M14 0L0 22H10L8 38L24 14H14L14 0Z" fill="#f5c400"/>
+            </svg>
+            <span class="footer-logo-text">
+              <span>ELECTRO</span>
+              <span>CRESPO</span>
+            </span>
+          </div>
+          <p class="footer-tagline">Soluciones eléctricas profesionales en Crespo y Entre Ríos.</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <div class="footer-col-title">Servicios</div>
+            <ul>
+              <li><a href="#servicios">Instalaciones eléctricas</a></li>
+              <li><a href="#servicios">Automatización del hogar</a></li>
+              <li><a href="#servicios">Reparaciones</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <div class="footer-col-title">Navegación</div>
+            <ul>
+              <li><a href="#sobre">Sobre mí</a></li>
+              <li><a href="#testimonios">Testimonios</a></li>
+              <li><a href="#contacto">Contacto</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="footer-copy">© 2025 <span>Electro Crespo</span> — Claudio Müller. Todos los derechos reservados.</p>
+        <div class="social-links">
+          <a href="https://instagram.com/electro.crespo" target="_blank" class="social-link" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+            </svg>
+          </a>
+          <a href="https://wa.me/5493434638450" target="_blank" class="social-link" aria-label="WhatsApp">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ── WHATSAPP FLOTANTE ── -->
+  <a href="https://wa.me/5493434638450?text=Hola%20Claudio%2C%20quiero%20consultar%20un%20presupuesto" target="_blank" class="wa-float" aria-label="Contactar por WhatsApp">
+    <div class="wa-float-btn">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+      </svg>
+    </div>
+    <span class="wa-float-label">Escribime por WhatsApp</span>
+  </a>
+
+  <script>
+    // ── CUSTOM CURSOR ──
+    const dot  = document.getElementById('cursorDot');
+    const ring = document.getElementById('cursorRing');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      dot.style.left  = mx + 'px';
+      dot.style.top   = my + 'px';
+    });
+
+    // ring follows with slight lag
+    function animateRing() {
+      rx += (mx - rx) * 0.18;
+      ry += (my - ry) * 0.18;
+      ring.style.left = rx + 'px';
+      ring.style.top  = ry + 'px';
+      requestAnimationFrame(animateRing);
+    }
+    animateRing();
+
+    // hover state on interactive elements
+    const hoverEls = document.querySelectorAll('a, button, .service-card, .testimonial-card, input, textarea, select');
+    hoverEls.forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+    });
+
+    // ── NAV SCROLL ──
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar.classList.toggle('scrolled', window.scrollY > 40);
+    });
+
+    // ── HAMBURGER ──
+    document.getElementById('hamburger').addEventListener('click', () =>
+      document.getElementById('mobileMenu').classList.add('open'));
+    document.getElementById('mobileClose').addEventListener('click', () =>
+      document.getElementById('mobileMenu').classList.remove('open'));
+    document.querySelectorAll('.mobile-link').forEach(l =>
+      l.addEventListener('click', () => document.getElementById('mobileMenu').classList.remove('open')));
+
+    // ── SCROLL REVEAL + section lines ──
+    const reveals = document.querySelectorAll('.reveal, .section-line');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const siblings = [...entry.target.parentElement.querySelectorAll('.reveal, .section-line')];
+          const idx = siblings.indexOf(entry.target);
+          setTimeout(() => entry.target.classList.add('visible'), idx * 80);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    reveals.forEach(el => observer.observe(el));
+
+    // ── FORM ──
+    document.getElementById('contactForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const btn = this.querySelector('.form-submit');
+      btn.textContent = 'Enviando...';
+      btn.disabled = true;
+      setTimeout(() => {
+        document.getElementById('formSuccess').style.display = 'block';
+        btn.style.display = 'none';
+        this.reset();
+      }, 1200);
+    });
+
+    // ── PARALLAX sutil en hero ──
+    const hero = document.getElementById('hero');
+    window.addEventListener('scroll', () => {
+      const y = window.scrollY;
+      if (y < window.innerHeight) {
+        hero.style.backgroundPositionY = (y * 0.3) + 'px';
+      }
+    });
+  </script>
+</body>
+</html>
